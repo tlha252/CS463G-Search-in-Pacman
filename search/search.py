@@ -1,15 +1,15 @@
 # search.py
 # ---------
-# Licensing Information:  You are free to use or extend these projects for 
-# educational purposes provided that (1) you do not distribute or publish 
-# solutions, (2) you retain this notice, and (3) you provide clear 
-# attribution to UC Berkeley, including a link to 
+# Licensing Information:  You are free to use or extend these projects for
+# educational purposes provided that (1) you do not distribute or publish
+# solutions, (2) you retain this notice, and (3) you provide clear
+# attribution to UC Berkeley, including a link to
 # http://inst.eecs.berkeley.edu/~cs188/pacman/pacman.html
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
-# The core projects and autograders were primarily created by John DeNero 
+# The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
-# Student side autograding was added by Brad Miller, Nick Hay, and 
+# Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
@@ -89,15 +89,69 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    
+
+    # print "Start:", problem.getStartState()
+    # print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    # print "Start's successors:", problem.getSuccessors(problem.getStartState())
+    startingState = problem.getStartState() #initializes starting state
+    currentState = startingState #intializes
+    openList = util.Stack() #intializes openList to the stack definitions provided in util.property
+    openList.push((startingState,[],0))
+    closedList = set()
+
+    while not openList.isEmpty() and not problem.isGoalState(currentState):
+        currentState, currentMoves, currentCost = openList.pop()
+        # currentState = openList.pop()
+        # currentMoves = openList.pop()
+        # currentCost = openList.pop()
+        # print currentState
+        # print currentMoves
+        # print currentCost
+
+        if (currentState in closedList):
+            continue;
+        closedList.add(currentState)
+        if problem.isGoalState(currentState):
+            return currentMoves
+        for state, direction, cost in problem.getSuccessors(currentState):
+            openList.push((state, currentMoves+[direction], currentCost))
+    return []
+
+    # from game import Directions
+    # s = Directions.SOUTH
+    # w = Directions.WEST
+    # return  [s,s,w,s,w,w,s,w]
+
+    # util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """
     Search the shallowest nodes in the search tree first.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    startingState = problem.getStartState() #initializes starting state
+    openList = util.Queue() #intializes openList to the stack definitions provided in util.property
+    openList.push((startingState,[],0))
+    closedList = set()
+
+    while not openList.isEmpty():
+        currentState, currentMoves, currentCost = openList.pop()
+        # currentState = openList.pop()
+        # currentMoves = openList.pop()
+        # currentCost = openList.pop()
+        # print currentState
+        # print currentMoves
+        # print currentCost
+
+        if (currentState in closedList):
+            continue;
+        closedList.add(currentState)
+        if problem.isGoalState(currentState):
+            return currentMoves
+        for state, direction, cost in problem.getSuccessors(currentState):
+            openList.push((state, currentMoves+[direction], currentCost))
+    return []
+    # util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
