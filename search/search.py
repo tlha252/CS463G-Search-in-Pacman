@@ -74,6 +74,41 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s,s,w,s,w,w,s,w]
 
+# genericSearch is a function I added to reduce the redundancy in search.py
+# DFS and BFS essentially have the same code but they use a different data structure
+# for their 'magic union operator'. This function takes in the problem passed, and the
+# union operator and models the pseudocode given to us in the class notes
+def genericSearch(problem, unionOperator):
+    if (unionOperator): # if unionOperator is true, it is being called by DFS so set openList to Stack
+        openList = util.Stack()
+    else: # if unionOperator is false, it is being called by BFS so set openList to Queue
+        openList = util.Queue()
+    closedList = [] #intializes closed list
+    startingState = problem.getStartState() #intializes starting state by pulling from problem
+    latestCoordinate = startingState #sets current state to the starting state
+    openList.push((startingState,[],0)) #Push the starting state unto the list
+    #For state representation, I use a format that is models what is returned by problem.getSuccessors
+    # States look like: (coordinate, directions, cost)
+
+    # PSEUDOCODE: WHILE (NOT IS GOALCURRENT) AND OPEN != 0
+    while not problem.isGoalState(latestCoordinate) and not openList.isEmpty():
+        # Reverse Order. Pop off at beginning of while loop
+        # PSEUDOCODE: CURRENT = FIRST(OPEN)
+        latestCoordinate, latestMove, latestCost = openList.pop() #Pops first value off open list, and stores the coordiante, moves, and cost of that state in 3 different variables
+        if (latestCoordinate in closedList): # Makes sure DFS does not expand any open nodes
+            continue;
+        # PSEUDOCODE: CLOSED = CLOSED + {CURRENT}
+        closedList.append(latestCoordinate) #adds the current state to closed list after values have been stored and already visited state check
+        # PSEUDOCODE: IF ISGOAL(CURRENT) THEN REPORT SUCCESS
+        if problem.isGoalState(latestCoordinate): #
+            return latestMove
+        # PSEUDOCODE: ELSE REPORT FAILURE. AKA restart while loop
+        # PSEUDOCODE: OPEN = OPEN - {CURRENT} + [SUCESSORS(CURRENT, OPS) - CLOSED]
+        for childCoordinate, childMove, childCost in problem.getSuccessors(latestCoordinate): #For loop that goes through every state related variable in child nodes and adds to open list
+            openList.push((childCoordinate, latestMove+[childMove], childCost)) #CHILDCOST WAS LATEST COST BUT ALL COST ARE THE SAME
+    # return [] return empty list of moves just in case nothing is found but i do not think that ever happens so remove at end if not needed
+# end of genericSearch()
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first
@@ -89,39 +124,8 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-
-    # print "Start:", problem.getStartState()
-    # print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    # print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    startingState = problem.getStartState() #initializes starting state
-    currentState = startingState #intializes
-    openList = util.Stack() #intializes openList to the stack definitions provided in util.property
-    openList.push((startingState,[],0))
-    closedList = set()
-
-    while not openList.isEmpty() and not problem.isGoalState(currentState):
-        currentState, currentMoves, currentCost = openList.pop()
-        # currentState = openList.pop()
-        # currentMoves = openList.pop()
-        # currentCost = openList.pop()
-        # print currentState
-        # print currentMoves
-        # print currentCost
-
-        if (currentState in closedList):
-            continue;
-        closedList.add(currentState)
-        if problem.isGoalState(currentState):
-            return currentMoves
-        for state, direction, cost in problem.getSuccessors(currentState):
-            openList.push((state, currentMoves+[direction], currentCost))
-    return []
-
-    # from game import Directions
-    # s = Directions.SOUTH
-    # w = Directions.WEST
-    # return  [s,s,w,s,w,w,s,w]
-
+    unionOperator = True
+    return genericSearch(problem, unionOperator)
     # util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
@@ -129,34 +133,21 @@ def breadthFirstSearch(problem):
     Search the shallowest nodes in the search tree first.
     """
     "*** YOUR CODE HERE ***"
-    startingState = problem.getStartState() #initializes starting state
-    openList = util.Queue() #intializes openList to the stack definitions provided in util.property
-    openList.push((startingState,[],0))
-    closedList = set()
-
-    while not openList.isEmpty():
-        currentState, currentMoves, currentCost = openList.pop()
-        # currentState = openList.pop()
-        # currentMoves = openList.pop()
-        # currentCost = openList.pop()
-        # print currentState
-        # print currentMoves
-        # print currentCost
-
-        if (currentState in closedList):
-            continue;
-        closedList.add(currentState)
-        if problem.isGoalState(currentState):
-            return currentMoves
-        for state, direction, cost in problem.getSuccessors(currentState):
-            openList.push((state, currentMoves+[direction], currentCost))
-    return []
+    unionOperator = False
+    return genericSearch(problem, unionOperator)
     # util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # startingState = problem.getStartState() #initializes starting state
+    # openList = util.Queue() #intializes openList to the stack definitions provided in util.property
+    # openList.push((startingState,[],0))
+    # closedList = set()
+    #
+    # while not openList.isEmpty() and not problem.isGoalState(currentState):
+    #
+    # # util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
     """
