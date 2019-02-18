@@ -140,13 +140,29 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
     "*** YOUR CODE HERE ***"
-    # startingState = problem.getStartState() #initializes starting state
-    # openList = util.Queue() #intializes openList to the stack definitions provided in util.property
-    # openList.push((startingState,[],0))
-    # closedList = set()
-    #
-    # while not openList.isEmpty() and not problem.isGoalState(currentState):
-    #
+    # Code primarily taken from genericSearch() except for differences in calculation of G(N) and use of priority Queue
+    openList = util.PriorityQueue()
+    closedList = []
+    startingState = problem.getStartState() #intializes starting state by pulling from problem
+    latestCoordinate = startingState #sets current state to the starting state
+    openList.push((startingState,[]), 0) #Push the starting state unto the list
+    while not problem.isGoalState(latestCoordinate) and not openList.isEmpty():
+        # Reverse Order. Pop off at beginning of while loop
+        # PSEUDOCODE: CURRENT = FIRST(OPEN)
+        latestCoordinate, latestMove = openList.pop() #Pops first value off open list, and stores the coordiante, moves, and cost of that state in 3 different variables
+        if (latestCoordinate in closedList): # Makes sure DFS does not expand any open nodes
+            continue;
+        # PSEUDOCODE: CLOSED = CLOSED + {CURRENT}
+        closedList.append(latestCoordinate) #adds the current state to closed list after values have been stored and already visited state check
+        # PSEUDOCODE: IF ISGOAL(CURRENT) THEN REPORT SUCCESS
+        if problem.isGoalState(latestCoordinate): #
+            return latestMove
+        # PSEUDOCODE: ELSE REPORT FAILURE. AKA restart while loop
+        # PSEUDOCODE: OPEN = OPEN - {CURRENT} + [SUCESSORS(CURRENT, OPS) - CLOSED]
+        for childCoordinate, childMove, childCost in problem.getSuccessors(latestCoordinate): #For loop that goes through every state related variable in child nodes and adds to open list
+            # PSEUDOCODE: COMPUTE G(N)
+            newCost = latestMove + [childMove]
+            openList.push((childCoordinate, latestMove+[childMove]), problem.getCostOfActions(newCost)) #CHILDCOST WAS LATEST COST BUT ALL COST ARE THE SAME
     # # util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -159,7 +175,31 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    openList = util.PriorityQueue()
+    closedList = []
+    startingState = problem.getStartState() #intializes starting state by pulling from problem
+    latestCoordinate = startingState #sets current state to the starting state
+    openList.push((startingState,[]), heuristic(startingState, problem)) #Push the starting state unto the list
+    while not problem.isGoalState(latestCoordinate) and not openList.isEmpty():
+        # Reverse Order. Pop off at beginning of while loop
+        # PSEUDOCODE: CURRENT = FIRST(OPEN)
+        latestCoordinate, latestMove = openList.pop() #Pops first value off open list, and stores the coordiante, moves, and cost of that state in 3 different variables
+        if (latestCoordinate in closedList): # Makes sure DFS does not expand any open nodes
+            continue;
+        # PSEUDOCODE: CLOSED = CLOSED + {CURRENT}
+        closedList.append(latestCoordinate) #adds the current state to closed list after values have been stored and already visited state check
+        # PSEUDOCODE: IF ISGOAL(CURRENT) THEN REPORT SUCCESS
+        if problem.isGoalState(latestCoordinate): #
+            return latestMove
+        # PSEUDOCODE: ELSE REPORT FAILURE. AKA restart while loop
+        # PSEUDOCODE: OPEN = OPEN - {CURRENT} + [SUCESSORS(CURRENT, OPS) - CLOSED]
+        for childCoordinate, childMove, childCost in problem.getSuccessors(latestCoordinate): #For loop that goes through every state related variable in child nodes and adds to open list
+            # PSEUDOCODE: COMPUTE G(N)
+            newActions = latestMove + [childMove]
+            newCost = problem.getCostOfActions(newActions) + heuristic(childCoordinate, problem)
+            openList.push((childCoordinate, latestMove+[childMove]), newCost) #CHILDCOST WAS LATEST COST BUT ALL COST ARE THE SAME
+    # # util.raiseNotDefined()
+    # util.raiseNotDefined()
 
 
 # Abbreviations
