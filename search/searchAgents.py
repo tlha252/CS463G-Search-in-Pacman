@@ -291,11 +291,10 @@ class CornersProblem(search.SearchProblem):
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
         "*** YOUR CODE HERE ***"
-        allCorners = (False, False, False, False)
-        start = (self.startingPosition, allCorners)
-        return start
-        util.raiseNotDefined()
-        util.raiseNotDefined()
+        initialCoordinate = self.startingPosition
+        initialCorners = (False, False, False, False)
+        startingState = (initialCoordinate, initialCorners)
+        return startingState
 
     def isGoalState(self, state):
         "Returns whether this search state is a goal state of the problem"
@@ -339,20 +338,20 @@ class CornersProblem(search.SearchProblem):
             # print (self.corners)
             allAvailableCorners = self.corners
             print (allAvailableCorners)
-            if not hitsWall:
+            if not self.walls[nextx][nexty]:
                 if nextState in self.corners:
                     if nextState == (allAvailableCorners[2]):
                         # newCorners = [True, holdCorners[1], holdCorners[2], holdCorners[3]]
-                        newCorners[0] = True
+                        newCorners[2] = True
                     elif nextState == (allAvailableCorners[3]):
                         # newCorners = [holdCorners[0], True, holdCorners[2], holdCorners[3]]
-                        newCorners[1] = True
+                        newCorners[3] = True
                     elif nextState == (allAvailableCorners[1]):
                         # newCorners = [holdCorners[0], holdCorners[1], True, holdCorners[3]]
-                        newCorners[2] = True
+                        newCorners[1] = True
                     elif nextState == (allAvailableCorners[0]):
                         # newCorners = [holdCorners[0], holdCorners[1], holdCorners[2], True]
-                        newCorners[3] = True
+                        newCorners[0] = True
                     successor = ((nextState, newCorners), action,  1)
                 else:
                     successor = ((nextState, holdCorners), action, 1)
@@ -405,16 +404,16 @@ def cornersHeuristic(state, problem):
     cornerNot = []
     for c in corners:
         if c == (1,1):
-            if not stateCorners[3]:
+            if not stateCorners[0]:
                 cornerNot.append(c)
         if c == (1, top):
-            if not stateCorners[2]:
-                cornerNot.append(c)
-        if c == (right, top):
             if not stateCorners[1]:
                 cornerNot.append(c)
+        if c == (right, top):
+            if not stateCorners[3]:
+                cornerNot.append(c)
         if c == (right, 1):
-            if not stateCorners[0]:
+            if not stateCorners[2]:
                 cornerNot.append(c)
 
     cost = 0
