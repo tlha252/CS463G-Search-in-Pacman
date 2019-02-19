@@ -285,26 +285,21 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-        self.right = right
-        self.top = top
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
         "*** YOUR CODE HERE ***"
-        initialCoordinate = self.startingPosition
-        initialCorners = (False, False, False, False)
-        startingState = (initialCoordinate, initialCorners)
+        initialCoordinate = self.startingPosition # Pulls initial coordinates from the starting position of agent
+        initialCorners = (False, False, False, False) # This is an array of 4 Bools that each represent one of the four corners on the map. Intialized to false since agent has not visited any corners yet but are changed to true upon checking in sucessor function
+        startingState = (initialCoordinate, initialCorners) # The startingState representation is a tuple of the two prior data components
         return startingState
-
+        # STATE REPRESENTATION: (CurrentPosition, CornersVisited[4])
     def isGoalState(self, state):
         "Returns whether this search state is a goal state of the problem"
         "*** YOUR CODE HERE ***"
-        # print state
-        corners = state[1]
-        # print corners
-        boolean = corners[0] and corners[1] and corners[2] and corners[3]
-        return boolean
-        util.raiseNotDefined()
+        # This returns the logical AND of all 4 Bool entries in the second component of the state Representation
+        # Only returns true if all corner states have been visited, thus all True's anded together returns True
+        return state[1][0] and state[1][1] and state[1][2] and state[1][3]
 
     def getSuccessors(self, state):
         """
@@ -328,37 +323,30 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
-            x,y = state[0]
-            holdCorners = state[1]
-            dx, dy = Actions.directionToVector(action)
-            nextx, nexty = int(x + dx), int(y + dy)
-            hitsWall = self.walls[nextx][nexty]
-            newCorners = [holdCorners[0], holdCorners[1], holdCorners[2], holdCorners[3]]
-            nextState = (nextx, nexty)
-            # print (self.corners)
-            allAvailableCorners = self.corners
-            print (allAvailableCorners)
-            if not self.walls[nextx][nexty]:
-                if nextState in self.corners:
-                    if nextState == (allAvailableCorners[2]):
-                        # newCorners = [True, holdCorners[1], holdCorners[2], holdCorners[3]]
-                        newCorners[2] = True
-                    elif nextState == (allAvailableCorners[3]):
-                        # newCorners = [holdCorners[0], True, holdCorners[2], holdCorners[3]]
-                        newCorners[3] = True
-                    elif nextState == (allAvailableCorners[1]):
-                        # newCorners = [holdCorners[0], holdCorners[1], True, holdCorners[3]]
-                        newCorners[1] = True
-                    elif nextState == (allAvailableCorners[0]):
-                        # newCorners = [holdCorners[0], holdCorners[1], holdCorners[2], True]
-                        newCorners[0] = True
-                    successor = ((nextState, newCorners), action,  1)
+            CONSTANT_PATH_WEIGHT = 1 #defines constant Path Weight to avoid magic numbers
+            allAvailableCorners = self.corners # pulls all corners that can be visited from list of self.corners
+            passedBoolCorner = state[1] # pulls boolean array of which corners have been visited from second element of state representation
+            updatedBoolCorners = [passedBoolCorner[0], passedBoolCorner[1], passedBoolCorner[2], passedBoolCorner[3]] # stores passed values in new boolean array for new corner detection
+            currentXCoordinate,currentYCoordinate = state[0] # pulls current x,y coordinate from first element of state representation
+            dx, dy = Actions.directionToVector(action) #distance function for next action
+            nextx, nexty = int(currentXCoordinate + dx), int(currentYCoordinate + dy)
+            newCoordintes = (nextx, nexty) # tuple representing the coordinates of the next state
+            if not self.walls[nextx][nexty]: # if the next move does not hit a will
+                if newCoordintes in self.corners: # if the next move happens to be a corner
+                    if newCoordintes == (allAvailableCorners[0]): # if the coordinate is the 0th corner, set the 0th index of the updated bool corner to True
+                        updatedBoolCorners[0] = True
+                    elif newCoordintes == (allAvailableCorners[1]): # if the coordinate is the 1st corner, set the 1st index of the updated bool corner to True
+                        updatedBoolCorners[1] = True
+                    elif newCoordintes == (allAvailableCorners[2]): # if the coordinate is the 2nd corner, set the 2nd index of the updated bool corner to True
+                        updatedBoolCorners[2] = True
+                    elif newCoordintes == (allAvailableCorners[3]): # if the coordinate is the 3rd corner, set the 3rd index of the updated bool corner to True
+                        updatedBoolCorners[3] = True
+                    resultingState = ((newCoordintes, updatedBoolCorners), action,  CONSTANT_PATH_WEIGHT) # if state is a corner, set the sucessor as the updated coordinates, updated list of visited corners, next action, and cost
                 else:
-                    successor = ((nextState, holdCorners), action, 1)
-                successors.append(successor)
-
-        self._expanded += 1
-        return successors
+                    resultingState = ((newCoordintes, passedBoolCorner), action, CONSTANT_PATH_WEIGHT) # if state is not a corner, set the sucessor as the updated coordinates, passed list of visited corners, next action, and cost
+                successors.append(resultingState) # append the resulting statet to list of successors
+        self._expanded += 1 # ???
+        return successors # return list of successors
 
     def getCostOfActions(self, actions):
         """
@@ -373,6 +361,23 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
+# replicateCorners is a helper function for cornersHeuristic. It exists due to the fact that
+# self is not passed to cornersHeuristic and since my state representation does not include the
+# actual coordinates of the states, just booleans that represent if they have been visited, this
+# method of calculating corners not seen exists.
+def replicateCorners(allAvailableCorners, currentBoolCorners):
+    replicatedCorners = [] # intialize list that will contain replicated coordinates of corners not seen
+    for individualCorner in allAvailableCorners: # for every corner in all possible corners
+        if not currentBoolCorners[0] and individualCorner == allAvailableCorners[0]: # if 0th corner has not been seen and that indidivdual corner is equal to that corner, append to list of unseen corners
+            replicatedCorners.append(individualCorner)
+        if not currentBoolCorners[1] and individualCorner == allAvailableCorners[1]: # if 1st corner has not been seen and that indidivdual corner is equal to that corner, append to list of unseen corners
+            replicatedCorners.append(individualCorner)
+        if not currentBoolCorners[2] and individualCorner == allAvailableCorners[2]: # if 2nd corner has not been seen and that indidivdual corner is equal to that corner, append to list of unseen corners
+            replicatedCorners.append(individualCorner)
+        if not currentBoolCorners[3] and individualCorner == allAvailableCorners[3]: # if 3rd corner has not been seen and that indidivdual corner is equal to that corner, append to list of unseen corners
+            replicatedCorners.append(individualCorner)
+    return replicatedCorners # return set of coordinates unseen
+# end of replicateCorners()
 
 def cornersHeuristic(state, problem):
     """
@@ -391,48 +396,22 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    # print state[0]
-    # currentCoordinates = list()
-    # currentCoordinates = state[0]
-    # for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-    #     print problem.getCostOfActions(currentCoordinates, action)
-    # return 0 # Default to trivial solution
-    position = state[0]
-    stateCorners = state[1]
-    corners = problem.corners
-    top, right = problem.walls.height-2, problem.walls.width-2
-    cornerNot = []
-    for c in corners:
-        if c == (1,1):
-            if not stateCorners[0]:
-                cornerNot.append(c)
-        if c == (1, top):
-            if not stateCorners[1]:
-                cornerNot.append(c)
-        if c == (right, top):
-            if not stateCorners[3]:
-                cornerNot.append(c)
-        if c == (right, 1):
-            if not stateCorners[2]:
-                cornerNot.append(c)
-
-    cost = 0
-    currPosition = position
-    while len(cornerNot) > 0:
-        distArr= []
-        x = 0
-        for c in range(0, len(cornerNot)):
-            corner = cornerNot[c]
-            x = x + 1
-            dist = util.manhattanDistance(currPosition, corner)
-            distArr.append(dist)
-        minDist = min(distArr)
-        cost += minDist
-        minDistI= distArr.index(minDist)
-        currPosition = cornerNot[minDistI]
-        del cornerNot[minDistI]
-
-    return cost
+    CONST_DEFAULT_COST = 0 # constant for default cost to return at goal state
+    from util import manhattanDistance # imports manhattanDistance function from util that is used in distance calculation for heuristic below
+    currentCost = CONST_DEFAULT_COST # intializes current cost to default value
+    passedCoordinates = state[0] # stores the passed current coordinates from the 1st component of the state representation
+    currentCoordinates = passedCoordinates # update currentCoordinates to those that are passed
+    boolCorners = state[1] # stores boolean array of visited corners
+    unseenCorners = replicateCorners(corners, boolCorners) # call to helper function replicateCorners which returns a list of currently unseen corners
+    while len(unseenCorners) > 0: # run heuristic until there are no more unseen corners
+        distancesToCorners= [] # list to represent the relative distance to specfic corners from agent
+        for individualCorner in range(0, len(unseenCorners)): # for all individual corners in the range from 0 to the length of total unseen corners
+            currentCorner = unseenCorners[individualCorner] # current corner for operation is the individual corner in the list of unseen corners
+            distancesToCorners.append(manhattanDistance(currentCoordinates, currentCorner)) # calculates distance from current coordinates to current corner in question
+        currentCoordinates = unseenCorners[distancesToCorners.index(min(distancesToCorners))] # updates current coordinates
+        currentCost = currentCost + min(distancesToCorners) # adds the minimum distanceToCornes to the established cost
+        unseenCorners.pop(distancesToCorners.index(min(distancesToCorners))) # delete corner from list of unseen corners for while loop conditional
+    return currentCost # return final calculated cost after heuristic runs
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -523,33 +502,24 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    position, foodGrid = state
-    foodlist = foodGrid.asList()
-    if not foodlist:
-        return 0
-    low = foodlist[0]
-    if len(foodlist) == 1:
-        return abs(position[0] - low[0]) + abs(position[1] - low[1])
-    newCost = 0
-    cost = 0
-    costArr = []
-    newCostArr = []
-    high = foodlist[0]
-    lowCost = 0
-    for point in foodlist:
-        cost = abs(position[0] - point[0]) + abs(position[1] - point[1])
-        costArr.append(cost)
-        lowCost = min(costArr)
-    minI = costArr.index(lowCost)
-    low = foodlist[minI]
-    for point in foodlist:
-        cost = abs(low[0] - point[0]) + abs(low[1] - point[1])
-        newCostArr.append(cost)
-        highCost = max(newCostArr)
-    maxI = newCostArr.index(highCost)
-    high = foodlist[maxI]
-    return abs(low[0] - high[0]) + abs(low[1] - high[1]) + abs(position[0] - low[0]) + abs(position[1] - low[1])
-    return 0
+    # mazeDistance() calculates distances from one coordinate to another. This can be
+    # utilized to find min distance from passed position to all coordinates with food in them. This implementation sets
+    # the farthest food point as the goal or heuristic, requiring all other food points/options to be shorter paths
+    # along the way. It has taken more time than i would like to admit it reach this representation but it seemed
+    # other methods were more convoluted.
+    CONST_FOOD_WEIGHT = 1 # Constant weight on a coordinate to represent if it has a food pellet on it
+    farthestFoodPoint = 0 # initialize farthest seen food point to 0 since none have been seen
+    cost = farthestFoodPoint # intializes cost to farthest seen food point since that it was it would be if it were not 0
+    initialState = problem.startingGameState # set initial state
+    xCoordinateRange = foodGrid.width # set x coordinate range
+    yCoordinateRange = foodGrid.height # set y coordinate range
+    for xCoordinate in range(xCoordinateRange): # for all x coordinates in the range
+        for yCoordinate in range(yCoordinateRange): # for all y coordinates in the range
+            if (foodGrid[xCoordinate][yCoordinate] == CONST_FOOD_WEIGHT): # if there is a food pellet on the spot
+                if (mazeDistance(position,(xCoordinate,yCoordinate),initialState) > farthestFoodPoint): # and if mazeDistance to that pellet is greater than the greatest seen mazeDistance to another pellet, reset greatest seen
+                    farthestFoodPoint = mazeDistance(position,(xCoordinate,yCoordinate),initialState) # set new farthestFood coordinate
+                    cost = farthestFoodPoint # update new cost as the farthestFoodPoint
+    return cost # return cost of farthestFoodPoint seen after indexing through entire x,y coordinate system
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -577,8 +547,7 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        return search.breadthFirstSearch(problem)
-        util.raiseNotDefined()
+        return search.breadthFirstSearch(problem) # returns the result of BFS search algortihim applied to the passed problem
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """

@@ -195,8 +195,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         # PSEUDOCODE: OPEN = OPEN - {CURRENT} + [SUCESSORS(CURRENT, OPS) - CLOSED]
         for childCoordinate, childMove, childCost in problem.getSuccessors(latestCoordinate): #For loop that goes through every state related variable in child nodes and adds to open list
             # PSEUDOCODE: COMPUTE G(N)
-            newActions = latestMove + [childMove]
-            newCost = problem.getCostOfActions(newActions) + heuristic(childCoordinate, problem)
+            newActions = latestMove + [childMove] # defines new actions as an addition of the past move with the upcoming child move
+            newCost = problem.getCostOfActions(newActions) + heuristic(childCoordinate, problem) # G(N) + H(N)
             openList.push((childCoordinate, latestMove+[childMove]), newCost) #CHILDCOST WAS LATEST COST BUT ALL COST ARE THE SAME
     # # util.raiseNotDefined()
     # util.raiseNotDefined()
